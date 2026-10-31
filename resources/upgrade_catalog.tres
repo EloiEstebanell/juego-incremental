@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="UpgradeCatalog" load_steps=7 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_catalog.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/upgrades/paper_quality.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/upgrades/official_stamp.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/upgrades/light_handle.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/upgrades/paper_transport.tres" id="6"]
+[resource]
+script = ExtResource("1")
+upgrades = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6")])

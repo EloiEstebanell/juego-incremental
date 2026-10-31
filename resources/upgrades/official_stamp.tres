@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 1
+operation = 1
+amount = 1.5
+[resource]
+script = ExtResource("1")
+id = &"official_stamp"
+title = "Sello certificado"
+description = "Multiplica por 1,5 el pago por cada nivel."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 1000
+cost_growth = 2.0
+max_level = 5
+prerequisite = &"paper_quality"
+prerequisite_level = 1

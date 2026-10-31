@@ -1,0 +1,26 @@
+ASUNTOS PENDIENTES - OFICINA Y AUTOMATIZACION
+
+Cierra la versión anterior y abre Jugar.cmd.
+Tu dinero y mejoras anteriores se conservan.
+
+EN LA MESA
+El papel llega solo al centro. Coge el sello con clic izquierdo.
+Clic derecho para sellar: el papel sale solo y llega el siguiente.
+Puedes mantener el sello cogido para toda la tanda.
+Al terminar, deja el sello y pulsa Cobrar salida o recoge la carga caminando.
+
+E: levantarte / sentarte / interactuar con el puesto cercano.
+W A S D: caminar. Ratón: mirar. ESC: pausa.
+R, desde la mesa: reponer papeles, sin borrar dinero ni mejoras.
+
+EN LA OFICINA
+Recogida: frente derecho de la mesa, E recoge hasta 3 documentos.
+Sobres: rodea la mesa, fondo derecha. E ensobra la carga.
+Expedición: fondo izquierda. E vende. Los sobres pagan el doble.
+
+La mejora TRAMITACION AGIL acelera el movimiento de papeles
+un 40 % por nivel. Está al final de la lista de mejoras.
+
+Hay guardado automático, incluida la carga transportada.
+No abras dos instancias del juego a la vez.
+Más detalles en README.md.
