@@ -45,8 +45,8 @@ func advance(delta: float) -> void:
 			output_count += 1
 	for item in desk.items:
 		if item.kind == "paper" and not item.impressions.is_empty() and not in_output(item):
-			if output_count < 3:
-				begin_move(item, Vector3(3.55, 0.09 + output_count * 0.035, 0))
+			if output_count < (desk.stations.capacity("stamp_out") if desk.stations else 3):
+				begin_move(item, Vector3(3.55, 0.09 + mini(output_count, 24) * 0.025, 0))
 			return
 	for item in desk.items:
 		if item == desk.held:

@@ -3,6 +3,11 @@ extends Resource
 @export var id: StringName
 @export var title: String
 @export_multiline var description: String
+@export var branch: String = "Valor"
+@export var tree_row: int = 0
+@export var required_sales: int = 0
+@export var required_any_effects: PackedInt32Array = []
+@export var required_any_label: String = ""
 @export var icon: Texture2D
 @export var effects: Array[UpgradeEffect] = []
 @export_range(1, 100000000) var initial_cost: int = 300

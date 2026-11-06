@@ -50,6 +50,7 @@ func run() -> void:
 	duplicate.prerequisite = &"test_paper"
 	check(not clone.validate().is_empty(), "Cyclic prerequisite rejected")
 	var desk = load("res://scenes/desk.tscn").instantiate()
+	desk.stations_enabled = false
 	desk.progression_enabled = false
 	desk.automation_enabled = false
 	desk.office_enabled = false
@@ -94,6 +95,7 @@ func run() -> void:
 	restored_economy.restore(roundtrip.economy)
 	check(restored_economy.balance == progress.economy.balance and restored_economy.payout() == progress.economy.payout() and roundtrip.papers.size() == original_snapshot.papers.size() and is_equal_approx(roundtrip.papers[0].position[0], original_snapshot.papers[0].position[0]), "Full snapshot round trip")
 	var restored_desk = load("res://scenes/desk.tscn").instantiate()
+	restored_desk.stations_enabled = false
 	restored_desk.progression_enabled = false
 	restored_desk.automation_enabled = false
 	restored_desk.office_enabled = false
@@ -162,7 +164,7 @@ func run() -> void:
 	var final_data: Dictionary = progress.store.load_game()
 	check(final_data.papers.size() == 3 and final_data.economy.balance == progress.economy.balance, "New batch and balance persist")
 	progress.open_shop()
-	check(desk.paused and progress.overlay.visible and progress.cards.get_child_count() == 4, "Shop pauses desk and displays catalog")
+	check(desk.paused and progress.overlay.visible and progress.cards.get_child_count() == progress.economy.catalog.upgrades.size(), "Shop pauses desk and displays catalog")
 	await process_frame
 	await process_frame
 	progress.last_purchase_msec = -1000

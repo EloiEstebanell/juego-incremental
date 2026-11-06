@@ -4,8 +4,11 @@ const DeskItem = preload("res://scripts/desk_item.gd")
 const TABLE_HALF := Vector2(4.8, 2.5)
 const OUTPUT_X := 2.65
 @export var progression_enabled := true
+@export var save_path := "res://saves/progress.json"
 @export var automation_enabled := true
 @export var office_enabled := true
+@export var stations_enabled := true
+var stations: Node
 var automation: Node
 var office: Node
 var progression: Node
@@ -24,6 +27,7 @@ var status_label: Label
 var count_label: Label
 var prompt_label: Label
 var pause_panel: PanelContainer
+var workstation: Node3D
 var item_root: Node3D
 var delivery_count := 0
 var message_time := 0.0
@@ -37,6 +41,7 @@ func _ready() -> void:
 	if progression_enabled:
 		progression = preload("res://scripts/progression/desk_progression.gd").new()
 		add_child(progression)
+		progression.store.path = save_path
 		progression.setup(self)
 	if automation_enabled:
 		automation = preload("res://scripts/office/paper_flow.gd").new()
@@ -46,6 +51,10 @@ func _ready() -> void:
 		office = preload("res://scripts/office/office.gd").new()
 		add_child(office)
 		office.setup(self)
+	if stations_enabled and progression:
+		stations = preload("res://scripts/office/station_network.gd").new()
+		add_child(stations)
+		stations.setup(self)
 
 func build_room() -> void:
 	var environment := WorldEnvironment.new()
@@ -73,30 +82,39 @@ func build_room() -> void:
 	camera.keep_aspect = Camera3D.KEEP_WIDTH
 	camera.current = true
 	Geo.box(self, Vector3(200, 0.2, 200), Vector3(0, -1.2, 0), Color("1d3337"))
-	Geo.box(self, Vector3(10.2, 0.32, 5.6), Vector3(0, -0.20, 0), Color("835b3e"))
-	Geo.box(self, Vector3(10.0, 0.07, 5.4), Vector3(0, -0.015, 0), Color("b3895d"))
+	workstation = Node3D.new()
+	workstation.name = "MesaSellado"
+	add_child(workstation)
+	Geo.box(workstation, Vector3(10.2, 0.32, 5.6), Vector3(0, -0.20, 0), Color("835b3e"))
+	Geo.box(workstation, Vector3(10.0, 0.07, 5.4), Vector3(0, -0.015, 0), Color("b3895d"))
 	# Deliberately quiet wood joins and a dark desk pad keep papers readable.
 	for x in [-3.3, -1.65, 0.0, 1.65, 3.3]:
-		Geo.box(self, Vector3(0.012, 0.003, 5.35), Vector3(x, 0.023, 0), Color("a17b53"))
-	Geo.box(self, Vector3(4.5, 0.035, 4.45), Vector3(0, 0.027, 0), Color("2d514d"))
+		Geo.box(workstation, Vector3(0.012, 0.003, 5.35), Vector3(x, 0.023, 0), Color("a17b53"))
+	Geo.box(workstation, Vector3(4.5, 0.035, 4.45), Vector3(0, 0.027, 0), Color("2d514d"))
 	for x in [-2.17, 2.17]:
-		Geo.box(self, Vector3(0.012, 0.002, 4.30), Vector3(x, 0.047, 0), Color("678079"))
+		Geo.box(workstation, Vector3(0.012, 0.002, 4.30), Vector3(x, 0.047, 0), Color("678079"))
 	for z in [-2.14, 2.14]:
-		Geo.box(self, Vector3(4.35, 0.002, 0.012), Vector3(0, 0.047, z), Color("678079"))
+		Geo.box(workstation, Vector3(4.35, 0.002, 0.012), Vector3(0, 0.047, z), Color("678079"))
 	for x in [-3.55, 3.55]:
-		Geo.box(self, Vector3(2.16, 0.025, 3.55), Vector3(x, 0.04, 0.10), Color("886546"))
+		Geo.box(workstation, Vector3(2.16, 0.025, 3.55), Vector3(x, 0.04, 0.10), Color("886546"))
 		for side in [-1, 1]:
-			Geo.box(self, Vector3(0.025, 0.07, 3.55), Vector3(x + side * 1.08, 0.07, 0.10), Color("c6a06b"))
-		Geo.box(self, Vector3(2.16, 0.07, 0.025), Vector3(x, 0.07, -1.67), Color("c6a06b"))
-	Geo.label(self, "01  /  ENTRADA", Vector3(-3.55, 0.06, -2.03), 29, Color("332f29"), 0.0034)
-	Geo.label(self, "02  /  TRAMITACIÓN", Vector3(0, 0.06, -1.93), 28, Color("c0c7ad"), 0.0034)
-	Geo.label(self, "03  /  SALIDA", Vector3(3.55, 0.06, -2.03), 29, Color("332f29"), 0.0034)
-	Geo.box(self, Vector3(0.98, 0.09, 0.8), Vector3(1.53, 0.09, -1.16), Color("1d3634"))
-	Geo.box(self, Vector3(0.84, 0.012, 0.66), Vector3(1.53, 0.142, -1.16), Color("85574b"))
-	Geo.label(self, "SELLO", Vector3(1.53, 0.06, -0.61), 20, Color("b8c2ad"), 0.003)
+			Geo.box(workstation, Vector3(0.025, 0.07, 3.55), Vector3(x + side * 1.08, 0.07, 0.10), Color("c6a06b"))
+		Geo.box(workstation, Vector3(2.16, 0.07, 0.025), Vector3(x, 0.07, -1.67), Color("c6a06b"))
+	Geo.label(workstation, "01  /  ENTRADA", Vector3(-3.55, 0.06, -2.03), 29, Color("332f29"), 0.0034)
+	Geo.label(workstation, "02  /  TRAMITACIÓN", Vector3(0, 0.06, -1.93), 28, Color("c0c7ad"), 0.0034)
+	Geo.label(workstation, "03  /  SALIDA", Vector3(3.55, 0.06, -2.03), 29, Color("332f29"), 0.0034)
+	Geo.box(workstation, Vector3(0.98, 0.09, 0.8), Vector3(1.53, 0.09, -1.16), Color("1d3634"))
+	Geo.box(workstation, Vector3(0.84, 0.012, 0.66), Vector3(1.53, 0.142, -1.16), Color("85574b"))
+	Geo.label(workstation, "SELLO", Vector3(1.53, 0.06, -0.61), 20, Color("b8c2ad"), 0.003)
 	item_root = Node3D.new()
 	item_root.name = "Interactivos"
-	add_child(item_root)
+	workstation.add_child(item_root)
+
+func set_office_view(enabled: bool) -> void:
+	# This only changes presentation. Local paper positions and saves remain unchanged.
+	var layout = preload("res://scripts/office/office_layout.gd")
+	workstation.scale = Vector3.ONE * layout.DESK_SCALE if enabled else Vector3.ONE
+	workstation.position = layout.DESK_ORIGIN if enabled else Vector3.ZERO
 
 func text_label(value: String, size: int, color: Color) -> Label:
 	var label := Label.new()
@@ -174,9 +192,9 @@ func build_ui() -> void:
 	row.add_child(labels)
 	prompt_label = text_label("Coge una solicitud de la bandeja izquierda", 20, Color("f2e8cc"))
 	labels.add_child(prompt_label)
-	status_label = text_label("CLIC IZQ  coger / dejar     ·     CLIC DER  sellar     ·     R  reponer mesa     ·     ESC  pausa", 14, Color("a9bbb1"))
+	status_label = text_label("CLIC IZQ  coger / dejar     ·     CLIC DER  sellar     ·     R  ordenar mesa     ·     ESC  pausa", 14, Color("a9bbb1"))
 	labels.add_child(status_label)
-	row.add_child(make_button("Reponer  ·  R", reset_desk))
+	row.add_child(make_button("Ordenar  ·  R", reset_desk))
 	row.add_child(make_button("Pausa  ·  Esc", toggle_pause))
 	pause_panel = PanelContainer.new()
 	ui.add_child(pause_panel)
@@ -196,6 +214,9 @@ func build_ui() -> void:
 	pause_panel.hide()
 
 func reset_desk() -> void:
+	if stations:
+		stations.tidy()
+		return
 	if automation:
 		automation.cancel()
 	if stroke and stroke.is_valid():
@@ -212,7 +233,7 @@ func reset_desk() -> void:
 		var paper := DeskItem.new()
 		item_root.add_child(paper)
 		paper.build("paper", progression.allocate_serial() if progression else index + 1)
-		paper.position = Vector3(-3.55 + index * 0.12, 0.09 + index * 0.035, 0.36 - index * 0.28)
+		paper.position = Vector3(-3.55 + index * 0.12, 0.09 + mini(index, 24) * 0.025, 0.36 - index * 0.28)
 		items.append(paper)
 	var stamp := DeskItem.new()
 	item_root.add_child(stamp)
@@ -227,6 +248,8 @@ func reset_desk() -> void:
 		progression.on_reset()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if stations and stations.handle_input(event):
+		return
 	if office and office.handle_input(event):
 		return
 	if progression and progression.overlay.visible:
@@ -317,12 +340,15 @@ func move_held(screen: Vector2) -> void:
 func drop_item() -> void:
 	if not held or busy or paused:
 		return
+	if stations and held.kind == "paper" and automation.in_output(held) and stations.papers(true).size() >= stations.capacity("stamp_out"):
+		held.position.x = 0.0
+		show_message("Salida llena. Recoge las cartas antes de añadir otra.")
 	# Compact the finite stack before placing the lifted object on top.
 	var papers: Array = items.filter(func(item): return item.kind == "paper" and item != held)
 	papers.sort_custom(func(a, b): return a.position.y < b.position.y)
 	for index in range(papers.size()):
-		papers[index].position.y = 0.09 + index * 0.035
-	var height: float = 0.09 + papers.size() * 0.035 if held.kind == "paper" else 0.09
+		papers[index].position.y = 0.09 + mini(index, 24) * 0.025
+	var height: float = 0.09 + mini(papers.size(), 24) * 0.025 if held.kind == "paper" else 0.09
 	if held.kind == "stamp":
 		for paper in papers:
 			if paper.contains_footprint(held.position):
@@ -393,7 +419,7 @@ func update_delivery() -> void:
 		if item.kind == "paper" and item != held and not item.impressions.is_empty() and not (automation and automation.moving == item):
 			if item.position.x - item.half_size.x >= OUTPUT_X and absf(item.position.z) + item.half_size.y <= 1.83:
 				delivery_count += 1
-	count_label.text = "%02d / 03  en salida" % delivery_count
+	count_label.text = "%02d / %02d en salida" % [delivery_count, stations.capacity("stamp_out") if stations else 3]
 	if progression and is_instance_valid(progression.stats):
 		progression.refresh()
 
@@ -401,7 +427,7 @@ func update_hint() -> void:
 	if message_time > 0:
 		return
 	if delivery_count == 3:
-		prompt_label.text = "Bandeja lista. Cobra la salida para recibir nuevas solicitudes."
+		prompt_label.text = "Bandeja lista. Recoge las cartas y llévalas a envío o ensobrado."
 	elif held and held.kind == "stamp":
 		prompt_label.text = "Clic derecho para sellar  ·  Clic izquierdo para dejar el sello"
 	elif held:

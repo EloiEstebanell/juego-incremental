@@ -9,14 +9,16 @@ func whole(value: Variant, maximum: int) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) and float(value) == floor(float(value)) and value >= 0 and value <= maximum
 
 func valid(data: Variant) -> bool:
-	if not data is Dictionary or (data.get("version") != 1 and data.get("version") != 2):
+	if not data is Dictionary or (data.get("version") != 1 and data.get("version") != 2 and data.get("version") != 3):
 		return false
-	if data.version == 2:
+	if data.version >= 2:
 		var office: Variant = data.get("office")
-		if not office is Dictionary or not whole(office.get("cargo"), 3) or not office.get("enveloped") is bool:
+		if not office is Dictionary or not whole(office.get("cargo"), 30 if data.version == 3 else 3) or not office.get("enveloped") is bool:
 			return false
 		if office.cargo == 0 and office.enveloped:
 			return false
+	if data.version == 3 and not preload("res://scripts/office/station_state.gd").valid(data.get("network")):
+		return false
 	var finance: Variant = data.get("economy")
 	if not finance is Dictionary or not whole(finance.get("balance"), Economy.LIMIT) or not whole(finance.get("sold"), 1000000000) or not finance.get("levels") is Dictionary:
 		return false
@@ -29,8 +31,27 @@ func valid(data: Variant) -> bool:
 	if not whole(data.get("next_serial"), 1000000000) or data.next_serial < 4:
 		return false
 	var papers: Variant = data.get("papers")
-	if not papers is Array or papers.size() > 3:
+	if not papers is Array or papers.size() > (64 if data.version == 3 else 3):
 		return false
+	if data.version == 3:
+		var model = Economy.new()
+		model.catalog = catalog
+		model.restore(finance)
+		if data.office.cargo > roundi(model.value(11, 3)) or papers.size() > roundi(model.value(5, 3) + model.value(6, 3)) + 1:
+			return false
+		var network: Dictionary = data.network
+		var reserved_envelope := 0
+		var reserved_shipping := 0
+		for key in network.routes:
+			if not network.routes[key].returning:
+				if key == "envelope": reserved_envelope += int(network.routes[key].cargo)
+				else: reserved_shipping += int(network.routes[key].cargo)
+		if network.envelope_in + reserved_envelope > roundi(model.value(7, 3)) or network.envelope_out > roundi(model.value(8, 3)):
+			return false
+		if network.shipping_in_raw + network.shipping_in_enveloped + reserved_shipping > roundi(model.value(9, 3)) or network.shipping_out_raw + network.shipping_out_enveloped > roundi(model.value(10, 3)):
+			return false
+		if (network.envelope_job > 0 and network.envelope_in == 0) or (network.shipping_job > 0 and network.shipping_in_raw + network.shipping_in_enveloped == 0):
+			return false
 	var ids := {}
 	for paper in papers:
 		if not paper is Dictionary or not whole(paper.get("serial"), 1000000000) or paper.serial < 1 or paper.serial >= data.next_serial or ids.has(paper.serial):
@@ -117,7 +138,7 @@ func allow_new_game() -> bool:
 func incompatible(data: Variant) -> bool:
 	if not data is Dictionary:
 		return false
-	if (data.get("version", 1) != 1 and data.get("version", 1) != 2):
+	if (data.get("version", 1) != 1 and data.get("version", 1) != 2 and data.get("version", 1) != 3):
 		return true
 	if data.get("economy") is Dictionary and data.economy.get("levels") is Dictionary:
 		var known := {}
@@ -130,10 +151,12 @@ func incompatible(data: Variant) -> bool:
 
 
 func migrate(data: Dictionary) -> Dictionary:
-	if data.version == 1:
+	if data.version < 3:
 		var updated := data.duplicate(true)
-		updated.version = 2
-		updated.office = {"cargo": 0, "enveloped": false}
-		notice = "Partida anterior cargada: dinero y mejoras conservados."
+		updated.version = 3
+		if not updated.has("office"):
+			updated.office = {"cargo": 0, "enveloped": false}
+		updated.network = preload("res://scripts/office/station_state.gd").fresh()
+		notice = "Partida migrada: saldo, mejoras, cartas y carga conservados."
 		return updated
 	return data

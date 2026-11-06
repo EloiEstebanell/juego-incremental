@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 5
+operation = 0
+amount = 3
+[resource]
+script = ExtResource("1")
+id = &"stamp_input"
+title = "Entrada de sellado"
+description = "Añade 3 plazas a la bandeja de entrada."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 400
+cost_growth = 1.8
+max_level = 5
+prerequisite = &""
+prerequisite_level = 0
+required_sales = 0
+branch = "Almacenes"
+tree_row = 0

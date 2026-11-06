@@ -7,6 +7,8 @@ var economy = Economy.new()
 var store = SaveStore.new()
 var persistence := true
 var office_state := {"cargo": 0, "enveloped": false}
+var network_state: Dictionary = {}
+var tree_view: Control
 var next_serial := 4
 var overlay: ColorRect
 var cards: VBoxContainer
@@ -29,10 +31,11 @@ func setup(owner_desk: Node3D) -> void:
 		if not data.is_empty():
 			economy.restore(data.economy)
 			office_state = data.get("office", {"cargo": 0, "enveloped": false}).duplicate()
+			network_state = data.get("network", {}).duplicate(true)
 			next_serial = int(data.next_serial)
 			restore_papers(data.papers)
 	build_ui()
-	if desk.items.size() == 1 and store.writable:
+	if desk.items.size() == 1 and store.writable and not desk.stations_enabled:
 		desk.reset_desk()
 	refresh()
 	if not store.notice.is_empty():
@@ -66,7 +69,7 @@ func snapshot() -> Dictionary:
 			marks.append([mark.x, mark.y])
 		var saved_position: Vector3 = desk.automation.destination if desk.automation and desk.automation.moving == item else item.position
 		papers.append({"serial": item.serial, "position": [saved_position.x, saved_position.y, saved_position.z], "marks": marks})
-	return {"version": 2, "economy": economy.snapshot(), "next_serial": next_serial, "papers": papers, "office": office_state.duplicate()}
+	return {"version": 3 if desk.stations_enabled else 2, "network": network_state.duplicate(true) if not network_state.is_empty() else preload("res://scripts/office/station_state.gd").fresh(), "economy": economy.snapshot(), "next_serial": next_serial, "papers": papers, "office": office_state.duplicate()}
 
 func persist() -> bool:
 	if not persistence:
@@ -79,9 +82,14 @@ func persist() -> bool:
 func refresh() -> void:
 	stats.text = "%s   ·   %d vendidos\n%s por documento" % [Economy.money(economy.balance), economy.sold, Economy.money(economy.payout())]
 	collect_button.text = "Cobrar salida · " + Economy.money(economy.payout() * desk.delivery_count)
+	if desk.stations:
+		collect_button.text = "Recoger salida · llevar a envío"
 	collect_button.disabled = desk.delivery_count == 0 or desk.busy or desk.held != null or not store.writable
 
 func collect() -> void:
+	if desk.stations:
+		desk.stations.take_stamp_output()
+		return
 	if desk.paused or desk.busy or desk.held or not store.writable:
 		return
 	var candidates: Array = []
@@ -145,7 +153,7 @@ func build_ui() -> void:
 	stats.position = Vector2(650, 46)
 	stats.size = Vector2(400, 60)
 	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var shop_button: Button = desk.make_button("Mejoras", open_shop)
+	var shop_button: Button = desk.make_button("Árbol de mejoras · M", open_shop)
 	desk.ui.add_child(shop_button)
 	shop_button.position = Vector2(42, 142)
 	collect_button = desk.make_button("Cobrar salida", collect)
@@ -154,26 +162,27 @@ func build_ui() -> void:
 	collect_button.custom_minimum_size.x = 310
 	save_status = desk.text_label("", 13, Color("c9ba87"))
 	desk.ui.add_child(save_status)
-	save_status.position = Vector2(220, 155)
-	save_status.size = Vector2(840, 36)
+	save_status.position = Vector2(350, 155)
+	save_status.size = Vector2(700, 36)
 	save_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	overlay = ColorRect.new()
+	overlay.z_index = 10
 	overlay.color = Color(0.025, 0.06, 0.06, 0.92)
 	desk.ui.add_child(overlay)
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
 	overlay.add_child(panel)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.offset_left = -490
-	panel.offset_right = 490
-	panel.offset_top = -330
-	panel.offset_bottom = 330
+	panel.offset_left = -650
+	panel.offset_right = 650
+	panel.offset_top = -390
+	panel.offset_bottom = 390
 	panel.add_theme_stylebox_override("panel", desk.panel_style(Color("172d2d"), Color("8b9275")))
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 14)
 	panel.add_child(content)
-	content.add_child(desk.text_label("Una oficina que vale más.", 32, Color("f3ecd9")))
-	content.add_child(desk.text_label("Trabaja, cobra y reinvierte. Las mejoras se conservan al cerrar.", 17, Color("a9bbb1")))
+	content.add_child(desk.text_label("Árbol de mejoras", 32, Color("f3ecd9")))
+	content.add_child(desk.text_label("Ramas independientes · las flechas y requisitos indican cada desbloqueo.", 17, Color("a9bbb1")))
 	shop_balance = desk.text_label("", 19, Color("e3c98c"))
 	content.add_child(shop_balance)
 	var scroll := ScrollContainer.new()
@@ -187,7 +196,7 @@ func build_ui() -> void:
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 16)
 	content.add_child(actions)
-	actions.add_child(desk.make_button("Volver a la mesa", close_shop))
+	actions.add_child(desk.make_button("Volver al juego · Esc", close_shop))
 	actions.add_child(desk.make_button("Nueva partida…", func(): confirm.popup_centered()))
 	confirm = ConfirmationDialog.new()
 	confirm.title = "Empezar de nuevo"
@@ -210,8 +219,31 @@ func open_shop() -> void:
 func close_shop() -> void:
 	overlay.hide()
 	desk.set_paused(false)
+	if desk.office and not desk.office.at_desk:
+		desk.ui.hide()
+		desk.office.walk_ui.show()
+		desk.office.sync_mouse()
 
 func refresh_shop() -> void:
+	if desk.stations:
+		refresh_pending = false
+		shop_balance.text = "Saldo: " + Economy.money(economy.balance) + "   ·   %d cartas vendidas" % economy.sold
+		cards.get_parent().hide()
+		if not tree_view:
+			tree_view = preload("res://scripts/progression/upgrade_tree.gd").new()
+			cards.get_parent().get_parent().add_child(tree_view)
+			cards.get_parent().get_parent().move_child(tree_view, 3)
+			tree_view.setup(self)
+			var branches := HBoxContainer.new()
+			for i in range(tree_view.BRANCHES.size()):
+				var branch_button: Button = desk.make_button(tree_view.BRANCHES[i], func(): tree_view.scroll_horizontal = i * 320)
+				branch_button.custom_minimum_size = Vector2(0, 32)
+				branch_button.add_theme_font_size_override("font_size", 13)
+				branches.add_child(branch_button)
+			cards.get_parent().get_parent().add_child(branches)
+			cards.get_parent().get_parent().move_child(branches, 3)
+		tree_view.rebuild()
+		return
 	shop_balance.text = "Saldo disponible: " + Economy.money(economy.balance)
 	refresh_pending = false
 	for child in cards.get_children():
@@ -244,6 +276,9 @@ func refresh_shop() -> void:
 		row.add_child(button)
 
 func new_game() -> void:
+	if desk.stations:
+		desk.stations.new_game()
+		return
 	var fresh_papers: Array = []
 	for index in range(3):
 		fresh_papers.append({"serial": index + 1, "position": [-3.55 + index * 0.12, 0.09 + index * 0.035, 0.36 - index * 0.28], "marks": []})

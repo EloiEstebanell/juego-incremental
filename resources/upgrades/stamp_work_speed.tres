@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 20
+operation = 1
+amount = 0.8
+[resource]
+script = ExtResource("1")
+id = &"stamp_work_speed"
+title = "Práctica de sellado"
+description = "El sellador tarda un 20 % menos por carta."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 900
+cost_growth = 1.8
+max_level = 6
+prerequisite = &"stamp_employee"
+prerequisite_level = 1
+required_sales = 0
+branch = "Sellado"
+tree_row = 2

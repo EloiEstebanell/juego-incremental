@@ -1,26 +1,22 @@
-ASUNTOS PENDIENTES - OFICINA Y AUTOMATIZACION
+ASUNTOS PENDIENTES - TRES ESTACIONES Y ARBOL DE MEJORAS
 
-Cierra la versión anterior y abre Jugar.cmd.
-Tu dinero y mejoras anteriores se conservan.
+Abre Jugar.cmd en esta carpeta. Esta es la nueva entrega local.
 
-EN LA MESA
-El papel llega solo al centro. Coge el sello con clic izquierdo.
-Clic derecho para sellar: el papel sale solo y llega el siguiente.
-Puedes mantener el sello cogido para toda la tanda.
-Al terminar, deja el sello y pulsa Cobrar salida o recoge la carga caminando.
+1. SELLO: clic izquierdo coge el sello; clic derecho sella.
+   Los papeles entran y salen solos. Recoge la salida antes de que se llene.
+2. ENVIO (fondo izquierda): E abre el puesto. Deposita, prepara y despacha
+   para cobrar. Disponible al inicio.
+3. ENSOBRADO (fondo derecha): compra el puesto en el arbol.
+   Deposita cartas selladas, ensobra, recoge y lleva a envio. Valor doble.
 
-E: levantarte / sentarte / interactuar con el puesto cercano.
-W A S D: caminar. Ratón: mirar. ESC: pausa.
-R, desde la mesa: reponer papeles, sin borrar dinero ni mejoras.
+M: arbol de 25 mejoras, con ramas y requisitos independientes.
+E: levantarte, sentarte, interactuar o cerrar un puesto.
+W A S D: caminar. Raton: mirar. ESC: cerrar panel o pausar.
+R: ordenar la mesa sin crear ni borrar cartas.
 
-EN LA OFICINA
-Recogida: frente derecho de la mesa, E recoge hasta 3 documentos.
-Sobres: rodea la mesa, fondo derecha. E ensobra la carga.
-Expedición: fondo izquierda. E vende. Los sobres pagan el doble.
+Mejora llegada de cartas, entradas y salidas, carga, precio y velocidades.
+Contrata por separado operarios y repartidores para automatizar la oficina.
+Las bandejas llenas detienen el trabajo sin perder material.
 
-La mejora TRAMITACION AGIL acelera el movimiento de papeles
-un 40 % por nivel. Está al final de la lista de mejoras.
-
-Hay guardado automático, incluida la carga transportada.
-No abras dos instancias del juego a la vez.
-Más detalles en README.md.
+Guardado automatico compatible con las partidas anteriores.
+No abras dos instancias a la vez. Mas detalles en README.md.

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 4
+operation = 1
+amount = 0.8
+[resource]
+script = ExtResource("1")
+id = &"arrival_rate"
+title = "Correo frecuente"
+description = "Reduce un 20 % el intervalo entre cartas."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 300
+cost_growth = 1.8
+max_level = 8
+prerequisite = &""
+prerequisite_level = 0
+required_sales = 0
+branch = "Llegadas"
+tree_row = 0

@@ -30,7 +30,7 @@ func value(attribute: int, base: float, override_id: StringName = &"", override_
 				added += effect.amount * count
 			else:
 				multiplied *= pow(effect.amount, count)
-	return clampf((base + added) * multiplied, 0.05 if attribute == 2 else 0.0001, LIMIT)
+	return clampf((base + added) * multiplied, 0.05 if attribute == 2 else 0.0, LIMIT)
 
 func payout(override_id: StringName = &"", override_level: int = -1) -> int:
 	return clampi(roundi(value(0, 100.0, override_id, override_level) * value(1, 1.0, override_id, override_level)), 1, LIMIT)
@@ -41,6 +41,13 @@ func reason(entry: UpgradeDefinition) -> String:
 	if entry.prerequisite != &"" and level(entry.prerequisite) < entry.prerequisite_level:
 		var required := definition(entry.prerequisite)
 		return "Requiere %s · nivel %d" % [required.title if required else str(entry.prerequisite), entry.prerequisite_level]
+	if not entry.required_any_effects.is_empty():
+		var satisfied := false
+		for attribute in entry.required_any_effects:
+			if value(attribute, 0) >= 1: satisfied = true
+		if not satisfied: return entry.required_any_label
+	if sold < entry.required_sales:
+		return "Requiere %d cartas vendidas (%d / %d)" % [entry.required_sales, sold, entry.required_sales]
 	if balance < cost(entry):
 		return "Faltan " + money(cost(entry) - balance)
 	return ""

@@ -1,51 +1,83 @@
 # Asuntos pendientes
 
-Prototipo de juego incremental de oficina en 3D, creado con Godot 4.7.2. Empieza sellando documentos y reinvierte tus ingresos en mejoras.
+Versión de prueba v0.4.0 · 6 de noviembre de 2026 · Godot 4.7.2 stable.
 
 ## Descargar y jugar en Windows
 
-1. Abre [la última versión de prueba](https://github.com/EloiEstebanell/juego-incremental/releases/latest).
-2. Descarga **Asuntos-pendientes-Windows-v0.3.0.zip** de la sección Assets.
-3. Extrae todo el ZIP en una carpeta donde puedas guardar archivos, por ejemplo en Documentos.
-4. Abre **Jugar.cmd**. El primer inicio prepara los recursos y puede tardar unos segundos.
+1. Abre [la última versión](https://github.com/EloiEstebanell/juego-incremental/releases/latest).
+2. Descarga **Asuntos-pendientes-Windows-v0.4.0.zip**, extrae todo y abre **Jugar.cmd**.
+3. El primer inicio prepara los recursos. No necesitas instalar Godot.
 
-No necesitas instalar Godot. El paquete incluye el motor. El ZIP de **Code → Download ZIP** contiene solo el código fuente y no incluye el motor.
+El ZIP de Code → Download ZIP contiene el código fuente sin motor; para usarlo, importa project.godot con Godot 4.7.2 estándar. Windows de 64 bits, renderizador Compatibility.
 
-Prototipo para Windows de 64 bits, probado con OpenGL Compatibility en una NVIDIA GTX 1060 Max-Q. Todavía no se ha probado en otros equipos. No abras dos instancias a la vez.
+![Oficina con la mesa corregida](docs/galeria/01-oficina.png)
 
-## Cómo jugar
+![Sellado manual](docs/galeria/04-sellado.png)
 
-- El papel llega automáticamente al centro. Coge el sello con **clic izquierdo** y sella con **clic derecho**. El documento va solo a la salida y llega el siguiente.
-- Deja el sello y pulsa **Cobrar salida**, o lleva la carga a sobres para aumentar su valor.
-- **E**: levantarte, sentarte o interactuar con el puesto cercano.
-- **WASD + ratón**: caminar y mirar. **Esc**: pausa.
-- **Recogida**, en el frente derecho de la mesa: E recoge hasta tres documentos.
-- **Sobres**, al fondo a la derecha: E ensobra la carga. **Expedición**, al fondo a la izquierda: E vende; los sobres pagan el doble.
-- **Mejoras**: papel de más valor, multiplicador del sello, golpe más rápido y Tramitación ágil, que aumenta un 40 % la velocidad de los papeles por nivel. Desplaza la lista para ver las cuatro.
-- **R** repone la mesa: descarta trabajo sin vender y conserva dinero, mejoras y carga.
+[Ver las 13 capturas](docs/galeria) · [Informar de un problema](https://github.com/EloiEstebanell/juego-incremental/issues)
 
-![Mesa automática](docs/captura-automatizacion.png)
 
-![Oficina](docs/captura-oficina.png)
+## Las tres estaciones
+
+1. **Sellado**, disponible al empezar. Clic izquierdo para coger el sello; clic derecho para sellar. El papel entra al centro y sale automáticamente. Las cartas nuevas llegan cada 5 segundos si queda espacio. Deja el sello y pulsa Recoger salida, o recoge en el frente derecho de la mesa con E.
+2. **Envío**, disponible al empezar, al fondo a la izquierda. E abre el puesto. Deposita cartas, prepara cada envío y pulsa Despachar salida y cobrar. La preparación conserva el material; solo el despacho paga. Admite cartas selladas y sobres.
+3. **Ensobrado**, al fondo a la derecha. Se compra en el árbol tras 10 ventas por 0,15 €. Deposita cartas selladas, ensobra y recoge los sobres de la salida. Llévalos a envío: valen el doble. No se puede ensobrar una carta dos veces.
+
+Todas las estaciones tienen entrada y salida limitadas, inicialmente 3 plazas cada una. Se mejoran por separado. Si una salida se llena, su operario espera. Depositar o recoger transfiere solo lo que cabe y conserva el sobrante. Los repartidores reservan espacio de destino antes de recoger.
+
+## Controles
+
+- E: levantarse, sentarse o abrir/cerrar el puesto cercano.
+- W A S D y ratón: caminar y mirar. Rodea la mesa por los pasillos laterales.
+- M: abrir el árbol de mejoras desde la mesa o caminando. Deja primero cualquier objeto cogido.
+- Esc: cerrar un panel o pausar. El árbol pausa toda la oficina; el panel de una estación permite que el trabajo continúe.
+- R: ordenar la mesa conservando los documentos. No genera cartas ni vende nada.
+
+La capacidad de mano comienza en 3 y aumenta de 2 en 2. Puedes completar una carga del mismo tipo, pero no mezclar cartas selladas con sobres. El número del HUD es la cantidad real; la pila visible representa hasta tres piezas.
+
+## Árbol de mejoras
+
+25 nodos en ocho ramas: Llegadas, Almacenes, Transporte, Valor, Sellado, Ensobrado, Envío y Rutas. Usa los botones superiores para saltar de rama y las barras para desplazarte. Las flechas y los textos indican los requisitos; cada ficha muestra efecto, nivel, precio y motivo de bloqueo.
+
+Las mejoras iniciales de recepción, bandejas, carga, movimiento y valor son paralelas. Las contrataciones tienen hitos distintos:
+
+| Desbloqueo | Ventas mínimas | Coste inicial |
+| --- | ---: | ---: |
+| Expedidor | 8 | 0,18 € |
+| Ensobrado | 10 | 0,15 € |
+| Repartidor sello → envío | 12 | 0,16 € |
+| Sellador | 15 | 0,22 € |
+| Repartidor sello → sobres | 20 + estación | 0,25 € |
+| Ensobrador | 25 + estación | 0,30 € |
+| Repartidor sobres → envío | 30 + estación | 0,25 € |
+
+El sellador espera mientras tienes un objeto cogido. El ensobrador procesa la entrada y el expedidor prepara cartas y despacha cada 4 segundos. Los tres transportistas se contratan aparte. Cuando ambas rutas desde sellado están activas, se prioriza ensobrado si tiene hueco; la ruta directa puede pausarse en el panel de envío. Un viaje iniciado se completa aunque pauses esa ruta.
+
+La práctica del sellador se compra después de contratarlo. Cualquier transportista contratado habilita las mejoras de velocidad y carga de repartidores. La velocidad manual de ensobrado y preparación también puede comprarse sin contratar su operario. Las mejoras se aplican a tareas/viajes nuevos, sin alterar uno que ya está en curso.
+
+Los precios y umbrales son una primera propuesta de equilibrio. El pago se calcula con el valor vigente al despachar. No hay salarios recurrentes ni producción sin conexión.
 
 ## Guardado
 
-Se guarda automáticamente en **saves/progress.json**, junto al juego. Incluye dinero, mejoras, papeles y carga transportada. Se conserva una copia anterior en progress.json.bak. Las partidas anteriores del esquema 1 son compatibles con el esquema 2 actual.
+Esquema **3**, en saves/progress.json, con respaldo .bak. Las versiones 1 y 2 conservan saldo, mejoras, papeles y carga al migrar. Las cartas ensobradas antiguas mantienen su valor aunque aún no hayas comprado el puesto.
 
-Para actualizar, conserva la carpeta saves y copia su contenido a la nueva versión. No compartas esa carpeta al informar de errores salvo que quieras adjuntar tu partida. No se guarda la posición del jugador: al cargar vuelves a la mesa con tu carga conservada. Un traslado en curso se resuelve a su destino; el ensobrado interrumpido debe repetirse.
+Se guardan entradas, salidas, carga en manos, temporizadores y repartidores con su carga y reservas. Las tareas conservan el documento en entrada hasta completarse. El movimiento sobre la mesa se resuelve a su destino reservado. Se guarda en cada operación económica o de material y cada 5 segundos para actualizar tiempos. Al volver apareces sentado.
 
-## Informar de un problema
+Una escritura fallida revierte la transferencia o venta afectada. Las partidas incompatibles no se sobrescriben. Nueva partida pide confirmación y conserva copia. Evita ejecutar dos instancias usando la misma partida: no hay coordinación entre procesos.
 
-Abre una [incidencia](https://github.com/EloiEstebanell/juego-incremental/issues) indicando qué hiciste, qué ocurrió y tu versión de Windows. Si puedes, añade una captura. También interesan observaciones sobre controles, ritmo y claridad de las mejoras.
+## Desarrollo
 
-## Abrir el código fuente
+scripts/office/station_network.gd coordina estaciones, rutas e interfaz. station_state.gd define/valida el estado persistente. upgrade_tree.gd presenta el catálogo Resource; resources/upgrades contiene los 25 nodos. docs/MEJORAS.md documenta sus efectos.
 
-Instala Godot **4.7.2 estándar**, importa project.godot y ejecuta la escena principal. Renderizador: Compatibility. No necesita complementos ni recursos externos.
+Pruebas: tests/run_tests.gd, economy_tests.gd, office_tests.gd y station_tests.gd. Ejecutar con runtime/Godot.exe --headless --path . --script res://tests/NOMBRE.gd. Todas usan partidas aisladas en tests/.tmp. Detalles en docs/PRUEBAS.md.
 
-Las mejoras se definen mediante Resource y archivos .tres. Consulta [la guía de mejoras](docs/MEJORAS.md). Las comprobaciones están en tests: 35 de mesa, 40 de economía y 44 de oficina. Ejecuta cada script con Godot --headless --path . --script res://tests/NOMBRE.gd después de importar el proyecto.
+Geometría y personajes provisionales; aún faltan arte, sonido, animación de empleados, ajustes de sensibilidad, exportación optimizada y valoración externa del equilibrio. Los repartidores siguen rutas fijas, sin navegación dinámica ni colisión con el jugador.
 
-## Estado del prototipo
+Repositorio: https://github.com/EloiEstebanell/juego-incremental
+Versión pública: https://github.com/EloiEstebanell/juego-incremental/releases/tag/v0.4.0
 
-Incluye mesa automática, oficina explorable, sobres, economía, cuatro mejoras y guardado. El arte es provisional. Aún no hay empleados, sonido, sensibilidad configurable ni una campaña completa. Esta es una versión de prueba, no una demo comercial terminada.
+## Capturas y proporciones
 
-Godot y sus componentes conservan sus licencias originales; el paquete Windows contiene GODOT-NOTICES.txt. Este repositorio no otorga una licencia adicional de reutilización del código y los recursos propios del juego.
+Abrir docs/galeria/index.html para recorrer 13 capturas reales. Las imágenes originales están en esa misma carpeta; El archivo Capturas-oficina.zip de Releases reúne la galería y los PNG. Mesa de sellado ajustada a 2,04 × 1,12 m y unos 77 cm de altura, con colisiones y rutas adaptadas. La vista sentada sigue siendo un primer plano para trabajar con precisión.
+
+Godot y sus componentes conservan sus licencias originales; el paquete Windows incluye GODOT-NOTICES.txt. Este repositorio no otorga una licencia adicional de reutilización del código y recursos propios del juego.

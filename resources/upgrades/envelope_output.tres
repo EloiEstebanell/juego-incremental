@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 8
+operation = 0
+amount = 3
+[resource]
+script = ExtResource("1")
+id = &"envelope_output"
+title = "Salida de sobres"
+description = "Añade 3 plazas para sobres terminados."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 600
+cost_growth = 1.8
+max_level = 5
+prerequisite = &"envelope_station"
+prerequisite_level = 1
+required_sales = 0
+branch = "Almacenes"
+tree_row = 5

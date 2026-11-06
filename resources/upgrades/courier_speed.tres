@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/progression/upgrade_effect.gd" id="2"]
+[sub_resource type="Resource" id="Effect"]
+script = ExtResource("2")
+attribute = 23
+operation = 1
+amount = 1.25
+[resource]
+script = ExtResource("1")
+id = &"courier_speed"
+title = "Repartidores rápidos"
+description = "Todos los transportistas caminan un 25 % más rápido."
+effects = Array[ExtResource("2")]([SubResource("Effect")])
+initial_cost = 800
+cost_growth = 1.8
+max_level = 6
+prerequisite = &""
+prerequisite_level = 0
+required_any_effects = PackedInt32Array(17, 18, 19)
+required_any_label = "Requiere contratar cualquier transportista"
+required_sales = 0
+branch = "Rutas"
+tree_row = 3

@@ -16,6 +16,7 @@ func check(condition: bool, description: String) -> void:
 
 func run() -> void:
 	desk = load("res://scenes/desk.tscn").instantiate()
+	desk.stations_enabled = false
 	desk.progression_enabled = false
 	desk.automation_enabled = false
 	desk.office_enabled = false

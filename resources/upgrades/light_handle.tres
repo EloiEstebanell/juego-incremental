@@ -15,3 +15,5 @@ effects = Array[ExtResource("2")]([SubResource("Effect")])
 initial_cost = 800
 cost_growth = 1.7
 max_level = 4
+branch = "Sellado"
+tree_row = 0

@@ -16,8 +16,8 @@ func capture() -> void:
 	var filename := "res://docs/captura-automatizacion.png"
 	if "--office" in OS.get_cmdline_user_args():
 		scene.office.leave_desk()
-		scene.office.player.position = Vector3(5.9, -1.04, 3.6)
-		scene.office.eye.look_at(Vector3(1.0, 1.0, -5.5))
+		scene.office.player.position = Vector3(2.5, -1.04, 2.8)
+		scene.office.eye.look_at(Vector3(0, -0.1, -1.5))
 		filename = "res://docs/captura-oficina.png"
 	elif "--shop" in OS.get_cmdline_user_args():
 		progression.open_shop()

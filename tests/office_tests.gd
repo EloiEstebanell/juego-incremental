@@ -15,6 +15,7 @@ func check(condition: bool, message: String) -> void:
 		push_error("FAIL: " + message)
 func run() -> void:
 	desk = load("res://scenes/desk.tscn").instantiate()
+	desk.stations_enabled = false
 	desk.progression_enabled = false
 	root.add_child(desk)
 	var progress = Progression.new()
@@ -81,6 +82,9 @@ func run() -> void:
 	key.pressed = true
 	root.push_input(key, true)
 	check(not office.at_desk and desk.held == null and office.eye.current, "E stands up and safely puts held object down")
+	check(desk.workstation.scale.is_equal_approx(Vector3.ONE * 0.2), "Walking displays desk at normal 2.04 metre width")
+	var local_papers: Array = progress.snapshot().papers
+	check(local_papers.size() == 3 and is_equal_approx(local_papers[0].position[0], -3.55), "Office scale preserves saved local paper coordinates")
 	await physics_frame
 	await physics_frame
 	var starting_z: float = office.player.position.z
@@ -88,11 +92,17 @@ func run() -> void:
 	for frame in range(100):
 		await physics_frame
 	Input.action_release("office_forward")
-	check(office.player.position.z < starting_z and office.player.position.z > 2.9, "W moves player and desk collision prevents crossing tabletop")
+	check(office.player.position.z < starting_z and office.player.position.z > 0.80 and office.player.position.z < 1.1, "W moves player and desk collision prevents crossing tabletop")
 	var mouse := InputEventMouseMotion.new()
 	mouse.relative = Vector2(30, -10)
 	root.push_input(mouse, true)
 	check(absf(office.player.rotation.y) > 0.01, "Mouse turns first-person view")
+	office.player.rotation = Vector3.ZERO
+	office.player.position = Vector3(1.5, -1.04, 1.2)
+	Input.action_press("office_forward")
+	for frame in range(40): await physics_frame
+	Input.action_release("office_forward")
+	check(office.player.position.z < 0, "Side aisle is walkable with no invisible giant desk collider")
 	desk.set_paused(true)
 	var paused_position: Vector3 = office.player.position
 	Input.action_press("office_right")
@@ -100,9 +110,10 @@ func run() -> void:
 	Input.action_release("office_right")
 	check(office.player.position.is_equal_approx(paused_position) and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Walking pause freezes player and releases mouse")
 	desk.set_paused(false)
-	office.player.position = Vector3(0, -1.04, 3.7)
+	office.player.position = Vector3(-0.25, -1.04, 1.1)
 	office.interact()
 	check(office.at_desk and desk.camera.current and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "E at workstation restores fixed camera and cursor")
+	check(desk.workstation.transform.is_equal_approx(Transform3D.IDENTITY), "Sitting restores original close-up coordinates for accurate stamping")
 	# Make a full output batch; verify cargo, envelopes and paid quantity conservation.
 	for item in desk.items:
 		if item.kind == "paper":
@@ -110,7 +121,7 @@ func run() -> void:
 			item.add_impression(item.global_position)
 	desk.update_delivery()
 	office.leave_desk()
-	office.player.position = Vector3(3.55, -1.04, 3.7)
+	office.player.position = Vector3(0.75, -1.04, 1.1)
 	office.interact()
 	check(progress.office_state.cargo == 3 and desk.delivery_count == 0 and desk.items.size() == 4, "Collecting three sheets transfers them to hands and replenishes desk")
 	check(not office.take_output() and progress.office_state.cargo == 3, "Capacity blocks a second pickup")
@@ -123,7 +134,7 @@ func run() -> void:
 	check(progress.persist(), "Carried batch persists")
 	var data: Dictionary = progress.store.load_game()
 	check(data.office.cargo == 3 and not data.office.enveloped, "Cargo survives save/load without converting early")
-	office.player.position = Vector3(6.4, -1.04, -4)
+	office.player.position = Vector3(3, -1.04, -1.7)
 	office.interact()
 	check(office.job_remaining > 0, "E starts envelope station operation")
 	desk.set_paused(true)
@@ -135,7 +146,7 @@ func run() -> void:
 	check(progress.office_state.cargo == 3 and progress.office_state.enveloped, "Enveloping conserves quantity and changes process state")
 	check(not office.start_envelopes(), "Envelope process cannot be applied twice")
 	var balance_before: int = progress.economy.balance
-	office.player.position = Vector3(-6.4, -1.04, -4)
+	office.player.position = Vector3(-3, -1.04, -1.7)
 	office.interact()
 	check(progress.office_state.cargo == 0 and progress.economy.balance == balance_before + 600, "Expedition pays double for three envelopes and consumes cargo")
 	check(not office.sell_cargo() and progress.economy.balance == balance_before + 600, "Repeated expedition action cannot pay twice")
@@ -148,7 +159,7 @@ func run() -> void:
 	legacy.erase("office")
 	check(progress.store.save(legacy), "Version one fixture is valid")
 	var migrated: Dictionary = progress.store.load_game()
-	check(migrated.version == 2 and migrated.office.cargo == 0 and migrated.economy.balance == legacy.economy.balance and migrated.economy.levels.has("paper_transport"), "Legacy save migrates while preserving money and upgrades")
+	check(migrated.version == 3 and migrated.office.cargo == 0 and migrated.economy.balance == legacy.economy.balance and migrated.economy.levels.has("paper_transport"), "Legacy save migrates while preserving money and upgrades")
 	for iteration in range(8):
 		office.sit_down()
 		office.leave_desk()

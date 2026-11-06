@@ -17,3 +17,5 @@ cost_growth = 2.0
 max_level = 5
 prerequisite = &"paper_quality"
 prerequisite_level = 1
+branch = "Valor"
+tree_row = 1

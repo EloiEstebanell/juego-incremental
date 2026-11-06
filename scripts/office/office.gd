@@ -1,5 +1,6 @@
 extends Node3D
 const Geo = preload("res://scripts/geometry.gd")
+const Layout = preload("res://scripts/office/office_layout.gd")
 const Economy = preload("res://scripts/progression/economy.gd")
 var desk: Node3D
 var at_desk := true
@@ -16,7 +17,7 @@ var job_duration := 1.5
 var message := ""
 var message_time := 0.0
 var look_sensitivity := 0.0025
-const ANCHORS := {"desk": Vector3(0, 0, 3.6), "pickup": Vector3(3.55, 0, 3.6), "envelopes": Vector3(6.4, 0, -4.0), "shipping": Vector3(-6.4, 0, -4.0)}
+const ANCHORS = Layout.ANCHORS
 
 func setup(owner_desk: Node3D) -> void:
 	desk = owner_desk
@@ -32,7 +33,7 @@ func setup(owner_desk: Node3D) -> void:
 	shape.shape = capsule
 	shape.position.y = 0.85
 	player.add_child(shape)
-	player.position = Vector3(0, -1.04, 4.1)
+	player.position = Layout.SPAWN
 	eye = Camera3D.new()
 	player.add_child(eye)
 	eye.position.y = 1.58
@@ -69,53 +70,52 @@ func sign_text(text: String, pos: Vector3, color: Color, size: int = 42) -> void
 	var label := Geo.label(world, text, pos, size, color, 0.009)
 	label.rotation_degrees.x = 0
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	if pos.z > 2:
+	if pos.z > 0:
 		label.pixel_size = 0.004
 		label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 
 func build_office() -> void:
-	solid(Vector3(18, 0.18, 16), Vector3(0, -1.16, 0), Color("364c48"))
-	for x in range(-8, 9, 2):
-		for z in range(-7, 8, 2):
-			Geo.box(world, Vector3(1.98, 0.006, 1.98), Vector3(x, -1.065, z), Color("45605a") if (x + z) % 4 else Color("3b554e"))
-	solid(Vector3(18, 0.15, 16), Vector3(0, 3.1, 0), Color("96a28a"))
-	for x in [-9.0, 9.0]:
-		solid(Vector3(0.2, 4, 16), Vector3(x, 0.9, 0), Color("8c9d8a"))
-	for z in [-8.0, 8.0]:
-		solid(Vector3(18, 4, 0.2), Vector3(0, 0.9, z), Color("a4ac96"))
-	# The workstation, walls and counters are physical obstacles for walking.
-	solid(Vector3(10.2, 1.1, 5.6), Vector3(0, -0.55, 0), Color.BLACK, false)
-	for x in [-4.4, 4.4]:
-		for z in [-2.1, 2.1]:
-			Geo.box(world, Vector3(0.18, 0.8, 0.18), Vector3(x, -0.65, z), Color("273b37"))
-	for x in [-6.4, 6.4]:
-		solid(Vector3(3.0, 1.1, 1.7), Vector3(x, -0.5, -5.5), Color("29443e"))
-		Geo.box(world, Vector3(3.12, 0.08, 1.8), Vector3(x, 0.09, -5.5), Color("b48d60"))
-		Geo.box(world, Vector3(2.4, 0.12, 0.14), Vector3(x, 0.35, -6.1), Color("c1aa78"))
-	sign_text("02 / SOBRES", Vector3(6.4, 1.45, -6.1), Color("f3e4b8"))
-	sign_text("Procesa tu carga · valor ×2", Vector3(6.4, 0.95, -6.1), Color("e8e0c5"), 24)
-	sign_text("03 / EXPEDICIÓN", Vector3(-6.4, 1.45, -6.1), Color("f3e4b8"))
-	sign_text("Entrega y cobra tu carga", Vector3(-6.4, 0.95, -6.1), Color("e8e0c5"), 24)
-	sign_text("01 / SELLADO", Vector3(0, -0.1, 2.86), Color("eee0b5"))
-	sign_text("RECOGIDA", Vector3(3.55, -0.1, 2.86), Color("e8d4a0"), 28)
+	solid(Vector3(10, 0.18, 9), Vector3(0, -1.16, 0), Color("364c48"))
+	for x in range(-5, 5):
+		for z in range(-4, 5):
+			Geo.box(world, Vector3(0.995, 0.006, 0.995), Vector3(x + 0.5, -1.065, z - 0.5), Color("45605a") if (x + z) % 2 else Color("3b554e"))
+	solid(Vector3(10, 0.15, 9), Vector3(0, 2.2, 0), Color("96a28a"))
+	for x in [-5.0, 5.0]:
+		solid(Vector3(0.15, 3.3, 9), Vector3(x, 0.55, 0), Color("8c9d8a"))
+	for z in [-4.5, 4.5]:
+		solid(Vector3(10, 3.3, 0.15), Vector3(0, 0.55, z), Color("a4ac96"))
+	# The close-up desk is displayed at 1:5 in the office: 2.04 × 1.12 m.
+	solid(Vector3(2.04, 0.76, 1.12), Vector3(0, -0.68, 0), Color.BLACK, false)
+	for x in [-0.88, 0.88]:
+		for z in [-0.42, 0.42]:
+			Geo.box(world, Vector3(0.065, 0.68, 0.065), Vector3(x, -0.72, z), Color("273b37"))
+	for x in [-3.0, 3.0]:
+		solid(Vector3(1.8, 0.72, 0.9), Vector3(x, -0.70, -2.7), Color("29443e"))
+		Geo.box(world, Vector3(1.9, 0.06, 1.0), Vector3(x, -0.31, -2.7), Color("b48d60"))
+		for offset in [-0.57, 0.57]:
+			Geo.box(world, Vector3(0.48, 0.025, 0.57), Vector3(x + offset, -0.26, -2.68), Color("6c795c"))
+		for offset in [-0.78, 0.78]:
+			Geo.box(world, Vector3(0.035, 0.07, 0.57), Vector3(x + offset, -0.24, -2.68), Color("bca776"))
+	sign_text("03 / ENSOBRADO", Vector3(3, 0.95, -3.25), Color("f3e4b8"), 30)
+	sign_text("Entrada → ensobrar → salida · valor ×2", Vector3(3, 0.57, -3.25), Color("e8e0c5"), 16)
+	sign_text("02 / ENVÍO", Vector3(-3, 0.95, -3.25), Color("f3e4b8"), 30)
+	sign_text("Preparar → despachar y cobrar", Vector3(-3, 0.57, -3.25), Color("e8e0c5"), 16)
+	sign_text("01 / SELLADO", Vector3(-0.30, -0.40, 0.57), Color("eee0b5"), 19)
+	sign_text("RECOGIDA", Vector3(0.71, -0.40, 0.57), Color("e8d4a0"), 12)
+	# Small envelope stock, at the same scale as the papers on the stamping desk.
 	for index in range(5):
-		Geo.box(world, Vector3(0.6, 0.014, 0.42), Vector3(6.0, 0.15 + index * 0.017, -5.3), Color("e1d1a7"))
-	Geo.box(world, Vector3(0.9, 0.6, 0.7), Vector3(-6.4, 0.43, -5.5), Color("b68b53"))
-	for x in [-8.2, 8.2]:
-		Geo.cylinder(world, 0.33, 0.52, Vector3(x, -0.8, 6.7), Color("a5754e"))
-		Geo.cylinder(world, 0.44, 0.8, Vector3(x, -0.12, 6.7), Color("40634d"))
-	var fill := OmniLight3D.new()
-	fill.position = Vector3(0, 2.7, -5)
-	fill.omni_range = 15
-	fill.light_energy = 0.8
-	world.add_child(fill)
-	for light_position in [Vector3(0, 2.5, 3.5), Vector3(6, 2.5, -3.5), Vector3(-6, 2.5, -3.5)]:
+		Geo.box(world, Vector3(0.24, 0.004, 0.17), Vector3(3.0, -0.26 + index * 0.006, -2.76), Color("e1d1a7"))
+	Geo.box(world, Vector3(0.38, 0.28, 0.32), Vector3(-3, -0.12, -2.8), Color("b68b53"))
+	for x in [-4.35, 4.35]:
+		Geo.cylinder(world, 0.22, 0.35, Vector3(x, -0.89, 3.5), Color("a5754e"))
+		Geo.cylinder(world, 0.30, 0.65, Vector3(x, -0.42, 3.5), Color("40634d"))
+	for light_position in [Vector3(0, 1.95, 2), Vector3(3, 1.95, -2), Vector3(-3, 1.95, -2)]:
 		var interior := OmniLight3D.new()
 		interior.position = light_position
-		interior.omni_range = 12
-		interior.light_energy = 1.4
+		interior.omni_range = 8
+		interior.light_energy = 1.15
 		world.add_child(interior)
-		var fixture := Geo.box(world, Vector3(1.8, 0.04, 0.5), Vector3(light_position.x, 2.99, light_position.z), Color("f1e9ce"))
+		var fixture := Geo.box(world, Vector3(1.0, 0.04, 0.25), Vector3(light_position.x, 2.1, light_position.z), Color("f1e9ce"))
 		fixture.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
 func build_ui() -> void:
@@ -168,7 +168,7 @@ func build_ui() -> void:
 	walk_pause.hide()
 
 func sync_mouse() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if at_desk or desk.paused else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if at_desk or desk.paused or (desk.stations and desk.stations.panel.visible) else Input.MOUSE_MODE_CAPTURED
 	if walk_pause:
 		walk_pause.visible = desk.paused
 
@@ -178,7 +178,8 @@ func leave_desk() -> void:
 	if desk.held:
 		desk.drop_item()
 	at_desk = false
-	player.position = Vector3(0, -1.04, 4.1)
+	desk.set_office_view(true)
+	player.position = Layout.SPAWN
 	player.rotation = Vector3.ZERO
 	eye.rotation = Vector3.ZERO
 	eye.current = true
@@ -191,6 +192,7 @@ func sit_down() -> void:
 	if job_remaining > 0:
 		return
 	at_desk = true
+	desk.set_office_view(false)
 	desk.camera.current = true
 	world.hide()
 	walk_ui.hide()
@@ -220,7 +222,7 @@ func handle_input(event: InputEvent) -> bool:
 
 func nearest_station() -> String:
 	var closest := ""
-	var distance := 2.0
+	var distance := 1.25
 	for key in ANCHORS:
 		var delta: Vector3 = player.position - ANCHORS[key]
 		delta.y = 0
@@ -230,16 +232,16 @@ func nearest_station() -> String:
 	return closest
 
 func _physics_process(delta: float) -> void:
-	if desk == null or at_desk or desk.paused:
+	if desk == null or at_desk or desk.paused or (desk.stations and desk.stations.panel.visible):
 		return
 	var direction := Input.get_vector("office_left", "office_right", "office_forward", "office_back")
 	var motion := player.basis * Vector3(direction.x, 0, direction.y) if job_remaining <= 0 else Vector3.ZERO
-	player.velocity.x = motion.x * 3.6
-	player.velocity.z = motion.z * 3.6
+	player.velocity.x = motion.x * (desk.stations.stat(12, 3.6) if desk.stations else 3.6)
+	player.velocity.z = motion.z * (desk.stations.stat(12, 3.6) if desk.stations else 3.6)
 	player.velocity.y -= 15 * delta
 	player.move_and_slide()
 	if player.position.y < -4:
-		player.position = Vector3(0, -1.04, 4.1)
+		player.position = Layout.SPAWN
 		player.velocity = Vector3.ZERO
 	if job_remaining > 0:
 		job_remaining = maxf(0, job_remaining - delta)
@@ -256,6 +258,9 @@ func tell(value: String) -> void:
 	message_time = 3.0
 
 func update_hud() -> void:
+	if desk.stations:
+		desk.stations.update_walk_hud()
+		return
 	var cargo: int = int(state().cargo)
 	carried_visual.visible = cargo > 0
 	for index in range(carried_visual.get_child_count()):
@@ -279,10 +284,16 @@ func interact() -> void:
 	match nearest_station():
 		"desk": sit_down()
 		"pickup": take_output()
-		"envelopes": start_envelopes()
-		"shipping": sell_cargo()
+		"envelopes":
+			if desk.stations: desk.stations.open_station("envelope")
+			else: start_envelopes()
+		"shipping":
+			if desk.stations: desk.stations.open_station("shipping")
+			else: sell_cargo()
 
 func take_output() -> bool:
+	if desk.stations:
+		return desk.stations.take_stamp_output()
 	if not desk.progression or not desk.progression.store.writable or int(state().cargo) > 0:
 		tell("Entrega la carga que llevas antes de recoger otra.")
 		return false
@@ -313,6 +324,8 @@ func take_output() -> bool:
 	return true
 
 func start_envelopes() -> bool:
+	if desk.stations:
+		return desk.stations.start_task("envelope")
 	if not desk.progression or int(state().cargo) == 0 or state().enveloped or job_remaining > 0:
 		tell("Necesitas una carga de documentos sellados sin ensobrar.")
 		return false
@@ -328,6 +341,8 @@ func finish_envelopes() -> void:
 		tell("Sobres listos. Llévalos a expedición: valor ×2.")
 
 func sell_cargo() -> bool:
+	if desk.stations:
+		return desk.stations.deposit("shipping") > 0
 	if not desk.progression or int(state().cargo) == 0 or job_remaining > 0 or not desk.progression.store.writable:
 		tell("No hay una carga lista para entregar.")
 		return false

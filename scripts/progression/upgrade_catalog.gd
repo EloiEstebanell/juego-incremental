@@ -12,8 +12,11 @@ func validate() -> PackedStringArray:
 		ids[entry.id] = entry
 		if entry.title.is_empty() or entry.initial_cost <= 0 or not is_finite(entry.cost_growth) or entry.cost_growth < 1 or entry.max_level < 1 or entry.max_level > 20 or entry.effects.is_empty():
 			errors.append("Definición inválida: " + str(entry.id))
+		for required in entry.required_any_effects:
+			if required < 0 or required >= UpgradeEffect.Attribute.size():
+				errors.append("Atributo requerido inválido: " + str(entry.id))
 		for effect in entry.effects:
-			if effect == null or not is_finite(effect.amount) or effect.amount <= 0 or effect.attribute not in [0, 1, 2, 3] or effect.operation not in [0, 1]:
+			if effect == null or not is_finite(effect.amount) or effect.amount <= 0 or (effect.attribute < 0 or effect.attribute >= UpgradeEffect.Attribute.size()) or effect.operation not in [0, 1]:
 				errors.append("Efecto inválido: " + str(entry.id))
 	for entry in upgrades:
 		if entry == null:
